@@ -2,7 +2,6 @@ package logger
 
 import (
 	"TelegramBot/web"
-	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -33,7 +32,7 @@ func LogFile(str string, mutex *sync.Mutex) {
 	}(file)
 
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 
