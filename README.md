@@ -1,64 +1,67 @@
 # 🚨 Telegram Site Monitor Bot
 
-**Telegram Site Monitor Bot** — это легковесное и удобное решение на **Go**, которое позволяет **отслеживать доступность веб-сайтов** и **оперативно получать уведомления в Telegram** при сбоях.
+**Telegram Site Monitor Bot** is a lightweight and convenient solution on **Go** that allows you to **monitor website
+availability** and **promptly receive notifications in Telegram** in case of failures.
 
 ---
 
-## 🔧 Что делает этот бот?
+## 🔧 What does this bot do?
 
-- 📡 **Проверяет доступность сайтов** по HTTP/HTTPS.
-- 📬 **Присылает уведомления в Telegram**, если сайт стал недоступен или снова работает.
-- 📈 **Логирует все проверки**: как успешные, так и неудачные в файл [год-месяц-число].log.
-- 📋 Предоставляет сводку по команде `/status` в telegram с текущим состоянием сайтов.
-
----
-
-## 📦 Основные возможности
-
-- ✅ Поддержка нескольких сайтов.
-- ⏱ Настраиваемые интервалы и тайм-ауты запросов.
-- 🔁 Автоматический запуск через systemd.
-- ⚙️ Конфигурационный файл можно менять без перекомпиляции
-- 🔐 Безопасность: конфигурация хранится локально, без сторонних сервисов.
+- 📡 **Checks website availability** via HTTP/HTTPS.
+- 📬 **Sends notifications to Telegram** if the site becomes unavailable or works again.
+- 📈 **Logs all checks**: both successful and unsuccessful to the file [year-month-date].log.
+- 📋 Provides a summary of the `/status` command in telegram with the current state of sites.
 
 ---
 
-## 📂 Установка и настройка
+## 📦 Key features
 
-1. **Установите Go** (v1.24.2 или выше).
-2. **Настройте сервер** (Linux, рекомендуется Ubuntu/Debian).
-3. **Создайте файл конфигурации `config.toml`:**
+- ✅ Support for multiple sites.
+- ⏱ Configurable intervals and request timeouts.
+- 🔁 Automatic startup via systemd.
+- ⚙️ Configuration file can be changed without recompilation
+- 🔐 Security: configuration is stored locally, without third-party services.
+
+---
+
+## 📂 Installation and configuration
+
+1. **Install Go** (v1.24.2 or higher).
+2. **Configure the server** (Linux, Ubuntu/Debian recommended).
+3. **Create a `config.toml` configuration file:**
 
 ```toml
-[telegram]  
-bot_token = "YOUR_TELEGRAM_BOT_TOKEN"  
-chat_id = 123456789  
+[telegram]
+bot_token = "YOUR_TELEGRAM_BOT_TOKEN"
+chat_id = 123456789
 
-[sites]  
-urls = [  
-  "https://example.com",  
-  "https://google.com",  
-]  
+[sites]
+urls = [
+  "https://example.com",
+  "https://google.com",
+]
 
-[settings]  
-check_interval = 300     # Интервал проверки (в секундах)  
-timeout = 10             # Таймаут запроса (в секундах)
+[settings]
+check_interval = 300 # Check interval (in seconds)
+timeout = 10 # Request timeout (in seconds)
 ```
-4. **Соберите и запустите бота:**
 
-- При сборке конфиг должен располагаться в корневой директории проекта
+4. **Build and run the bot:**
+
+- When building, the config must be located in the root directory of the project
 ```bash
 go build -o site-monitor-bot
 ./site-monitor-bot
 ```
 
-- При запуске через флаг `-path` или сокращенно `-p` передайте путь к конфигу.
-  Если не использовать флаг, то программа будет использовать конфиг в корневой директории
+- When running via the `-path` flag or `-p` for short, pass the path to config.
+  If you do not use the flag, the program will use the config in the root directory
 ```bash
-go run main.go -path /путь/к/вашему/config.toml
+go run main.go -path /path/to/your/config.toml
 ```
 
 ---
 
-## 📫 Обратная связь
-Если у вас есть идеи, предложения или баги — не стесняйтесь открывать issue или делать pull request!
+## 📫 Feedback
+
+If you have any ideas, suggestions or bugs, feel free to open an issue or make a pull request!
