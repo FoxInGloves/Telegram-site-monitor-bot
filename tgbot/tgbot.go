@@ -7,6 +7,7 @@ import (
 	tgbotapi "github.com/Syfaro/telegram-bot-api"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -41,8 +42,6 @@ func InitCommands(bot *tgbotapi.BotAPI, chatId *int) {
 		log.Println(err)
 	}
 
-	bot.Debug = true
-
 	for update := range updates {
 		switch update.Message.Command() {
 		case "status":
@@ -65,7 +64,7 @@ func InitCommands(bot *tgbotapi.BotAPI, chatId *int) {
 				close(unusedChannel)
 				close(channel)
 
-				message := tgbotapi.NewMessage(int64(*chatId), text)
+				message := tgbotapi.NewMessage(int64(*chatId), strings.Trim(text, "\n"))
 				_, err := bot.Send(message)
 				if err != nil {
 					log.Println(err.Error())
