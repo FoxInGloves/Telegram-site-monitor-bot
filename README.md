@@ -1,5 +1,7 @@
 # 🚨 Telegram Site Monitor Bot
 
+**[English](README.md) | [Русский](README.ru.md)**
+
 **Telegram Site Monitor Bot** is a lightweight and convenient solution on **Go** that allows you to **monitor website
 availability** and **promptly receive notifications in Telegram** in case of failures.
 
