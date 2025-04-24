@@ -48,14 +48,14 @@ timeout = 10             # Таймаут запроса (в секундах)
 
 - При сборке конфиг должен располагаться в корневой директории проекта
 ```bash
-go run main.go -path /путь/к/вашему/config.toml
+go build -o site-monitor-bot
+./site-monitor-bot
 ```
 
 - При запуске через флаг `-path` или сокращенно `-p` передайте путь к конфигу.
   Если не использовать флаг, то программа будет использовать конфиг в корневой директории
 ```bash
-go build -o site-monitor-bot
-./site-monitor-bot
+go run main.go -path /путь/к/вашему/config.toml
 ```
 
 ---
