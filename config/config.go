@@ -1,8 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"github.com/BurntSushi/toml"
+	"log"
 	"os"
 	"time"
 )
@@ -36,7 +36,8 @@ func GetTomlConfig() *TomlConfig {
 
 	var tomlConfig TomlConfig
 	if _, err := toml.DecodeFile(PathToConfig, &tomlConfig); err != nil {
-		fmt.Println("Error:", err)
+		log.Println("Конфиг поврежден! Проверьте конфиг и перезапустите программу.")
+		log.Println("Error:", err)
 		os.Exit(1)
 	}
 	return &tomlConfig
@@ -44,10 +45,11 @@ func GetTomlConfig() *TomlConfig {
 
 func (tomlConfig *TomlConfig) UpdateConfig() string {
 	for {
-		time.Sleep(time.Duration(float32(tomlConfig.Settings.CheckInterval)/1.73) * time.Second)
+		time.Sleep(time.Duration(tomlConfig.Settings.CheckInterval) * time.Second)
 		if _, err := toml.DecodeFile(PathToConfig, &tomlConfig); err != nil {
-			fmt.Println("Error:", err)
-			return "Конфиг поврежден! Проверьте конфиг и перезапустите программу."
+			log.Println("Конфиг поврежден! Проверьте конфиг и перезапустите программу.")
+			log.Println("Error:", err)
+			os.Exit(1)
 		}
 	}
 }
