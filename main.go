@@ -24,14 +24,12 @@ func main() {
 	defer close(logRespCh)
 	defer close(errorsRespCh)
 
-	wg.Add(1)
+	wg.Add(3)
 	go tgbot.Init(&tomlConfig.Telegram.BotToken, &tomlConfig.Telegram.ChatId, errorsRespCh)
 
 	mutex := &sync.Mutex{}
-	wg.Add(1)
 	go logger.InitLogger(logRespCh, mutex)
 
-	wg.Add(1)
 	go web.InfRequests(tomlConfig, logRespCh, errorsRespCh)
 
 	wg.Wait()
@@ -40,7 +38,9 @@ func main() {
 func ParseFlags() {
 	path := flag.String("path", "config.toml", "Путь к конфигу")
 	p := flag.String("p", "config.toml", "Путь к конфигу")
+
 	flag.Parse()
+
 	if *path != "config.toml" && *p != "config.toml" {
 		fmt.Println("Путь к конфигу взят из флага -path")
 		config.PathToConfig = *path
