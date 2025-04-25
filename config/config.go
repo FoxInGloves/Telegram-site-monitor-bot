@@ -8,21 +8,21 @@ import (
 )
 
 type TomlConfig struct {
-	Telegram TelegramConfig
-	Sites    SitesConfig
-	Settings SettingsConfig
+	Telegram telegramConfig
+	Sites    sitesConfig
+	Settings settingsConfig
 }
 
-type TelegramConfig struct {
+type telegramConfig struct {
 	BotToken string `toml:"bot_token"`
 	ChatId   int    `toml:"chat_id"`
 }
 
-type SitesConfig struct {
+type sitesConfig struct {
 	Urls []string `toml:"urls"`
 }
 
-type SettingsConfig struct {
+type settingsConfig struct {
 	CheckInterval int `toml:"check_interval"`
 	Timeout       int `toml:"timeout"`
 }

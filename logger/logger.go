@@ -12,12 +12,12 @@ func InitLogger(infoRespCh <-chan web.Response, mutex *sync.Mutex) {
 	for {
 		response := <-infoRespCh
 		text := FormatResponse(response)
-		go LogFile(text, mutex)
+		go logToFile(text, mutex)
 	}
 
 }
 
-func LogFile(str string, mutex *sync.Mutex) {
+func logToFile(str string, mutex *sync.Mutex) {
 	fileName := time.Now().Format("2006-01-02") + ".log"
 
 	mutex.Lock()
