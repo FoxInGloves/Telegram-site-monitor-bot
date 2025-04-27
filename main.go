@@ -7,7 +7,10 @@ import (
 	"TelegramBot/web"
 	"flag"
 	"fmt"
+	"log"
+	"net/http"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -15,9 +18,11 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	tomlConfig := config.GetTomlConfig()
-	wg.Add(1)
-	go tomlConfig.UpdateConfig()
+	tomlConfig, getConfigError := config.GetTomlConfig()
+	if getConfigError != nil {
+		fmt.Println(getConfigError)
+		return
+	}
 
 	logRespCh := make(chan web.Response, len(tomlConfig.Sites.Urls))
 	errorsRespCh := make(chan web.Response, len(tomlConfig.Sites.Urls))
@@ -25,28 +30,47 @@ func main() {
 	defer close(errorsRespCh)
 
 	wg.Add(3)
-	go tgbot.Init(&tomlConfig.Telegram.BotToken, &tomlConfig.Telegram.ChatId, errorsRespCh)
+	go tgbot.Init(&tomlConfig.Telegram.BotToken, &tomlConfig.Telegram.ChatID, errorsRespCh)
 
 	mutex := &sync.Mutex{}
 	go logger.InitLogger(logRespCh, mutex)
 
-	go web.InfRequests(tomlConfig, logRespCh, errorsRespCh)
+	go func() {
+		client := &http.Client{
+			Timeout: time.Duration(tomlConfig.Settings.Timeout) * time.Second,
+		}
+		for {
+			performRequests(tomlConfig, client, logRespCh, errorsRespCh)
+			time.Sleep(time.Duration(tomlConfig.Settings.CheckInterval) * time.Second)
+		}
+	}()
 
 	wg.Wait()
 }
 
 func ParseFlags() {
 	path := flag.String("path", "config.toml", "Путь к конфигу")
-	p := flag.String("p", "config.toml", "Путь к конфигу")
+	p := flag.String("p", "", "Путь к конфигу (короткая версия)")
 
 	flag.Parse()
 
-	if *path != "config.toml" && *p != "config.toml" {
-		fmt.Println("Путь к конфигу взят из флага -path")
-		config.PathToConfig = *path
-	} else if *p != "config.toml" {
+	if *p != "" {
 		config.PathToConfig = *p
 	} else {
 		config.PathToConfig = *path
+	}
+}
+
+func performRequests(tomlConfig *config.TomlConfig, client *http.Client, logRespCh, errorsRespCh chan<- web.Response) {
+	updateConfigError := tomlConfig.UpdateConfig()
+	if updateConfigError != nil {
+		log.Println(updateConfigError)
+		return
+	}
+
+	for _, url := range tomlConfig.Sites.Urls {
+		go func(url string) {
+			web.GetRequest(url, client, logRespCh, errorsRespCh)
+		}(url)
 	}
 }
