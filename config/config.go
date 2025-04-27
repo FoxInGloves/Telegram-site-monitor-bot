@@ -1,10 +1,8 @@
 package config
 
 import (
+	"fmt"
 	"github.com/BurntSushi/toml"
-	"log"
-	"os"
-	"time"
 )
 
 type TomlConfig struct {
@@ -15,7 +13,7 @@ type TomlConfig struct {
 
 type telegramConfig struct {
 	BotToken string `toml:"bot_token"`
-	ChatId   int    `toml:"chat_id"`
+	ChatID   int    `toml:"chat_id"`
 }
 
 type sitesConfig struct {
@@ -29,27 +27,22 @@ type settingsConfig struct {
 
 var PathToConfig string
 
-func GetTomlConfig() *TomlConfig {
+func GetTomlConfig() (*TomlConfig, error) {
 	if PathToConfig == "" {
 		PathToConfig = "config.toml"
 	}
 
 	var tomlConfig TomlConfig
 	if _, err := toml.DecodeFile(PathToConfig, &tomlConfig); err != nil {
-		log.Println("Конфиг поврежден! Проверьте конфиг и перезапустите программу.")
-		log.Println("Error:", err)
-		os.Exit(1)
+		configError := fmt.Errorf("Config is corrupted! Check the config and restart the program.\nError: %w", err)
+		return nil, configError
 	}
-	return &tomlConfig
+	return &tomlConfig, nil
 }
 
-func (tomlConfig *TomlConfig) UpdateConfig() string {
-	for {
-		time.Sleep(time.Duration(tomlConfig.Settings.CheckInterval) * time.Second)
-		if _, err := toml.DecodeFile(PathToConfig, &tomlConfig); err != nil {
-			log.Println("Конфиг поврежден! Проверьте конфиг и перезапустите программу.")
-			log.Println("Error:", err)
-			os.Exit(1)
-		}
+func (tomlConfig *TomlConfig) UpdateConfig() error {
+	if _, err := toml.DecodeFile(PathToConfig, &tomlConfig); err != nil {
+		return fmt.Errorf("Config is corrupted! Check the config and restart the program.\nError: %w", err)
 	}
+	return nil
 }

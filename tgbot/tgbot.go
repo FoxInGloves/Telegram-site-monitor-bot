@@ -27,7 +27,7 @@ func handleResponses(bot *tgbotapi.BotAPI, chatId *int, channel <-chan web.Respo
 		message := tgbotapi.NewMessage(int64(*chatId), text)
 
 		if _, err := bot.Send(message); err != nil {
-			log.Printf("Ошибка отправки сообщения: %v\n", err)
+			log.Printf("error sending message: %v\n", err)
 		}
 	}
 }
@@ -38,7 +38,7 @@ func handleCommands(bot *tgbotapi.BotAPI, chatId *int) {
 
 	updates, err := bot.GetUpdatesChan(u)
 	if err != nil {
-		log.Panic("Ошибка получения обновлений:", err)
+		log.Panic("Error receiving updates:", err)
 	}
 
 	for update := range updates {
@@ -56,7 +56,10 @@ func handleCommands(bot *tgbotapi.BotAPI, chatId *int) {
 }
 
 func handleStatusCommand(bot *tgbotapi.BotAPI, chatId *int) {
-	tomlConfig := config.GetTomlConfig()
+	tomlConfig, err := config.GetTomlConfig()
+	if err != nil {
+		log.Println(err)
+	}
 	client := &http.Client{Timeout: time.Duration(tomlConfig.Settings.Timeout) * time.Second}
 
 	channel := make(chan web.Response, len(tomlConfig.Sites.Urls))
@@ -76,13 +79,13 @@ func handleStatusCommand(bot *tgbotapi.BotAPI, chatId *int) {
 	message := tgbotapi.NewMessage(int64(*chatId), text)
 
 	if _, err := bot.Send(message); err != nil {
-		log.Printf("Ошибка отправки сообщения: %v\n", err)
+		log.Printf("error sending message: %v\n", err)
 	}
 }
 
 func handleUnknownCommand(bot *tgbotapi.BotAPI, chatId *int) {
 	message := tgbotapi.NewMessage(int64(*chatId), "Неизвестная команда")
 	if _, err := bot.Send(message); err != nil {
-		log.Printf("Ошибка отправки сообщения: %v\n", err)
+		log.Printf("Error sending message: %v\n", err)
 	}
 }
