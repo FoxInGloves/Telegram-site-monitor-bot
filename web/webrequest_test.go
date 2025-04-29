@@ -28,7 +28,7 @@ func TestGetRequest_Success(t *testing.T) {
 	select {
 	case resp := <-chLog:
 		if resp.StatusCode != http.StatusOK {
-			t.Errorf("Ожидался код %d, получен %d", http.StatusOK, resp.StatusCode)
+			t.Errorf("expected а responce code %d, received %d", http.StatusOK, resp.StatusCode)
 		}
 	default:
 		t.Error("expected a response in chLog")
