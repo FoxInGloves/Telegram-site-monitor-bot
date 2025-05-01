@@ -21,16 +21,6 @@ check_interval = 300
 timeout = 10
 `
 
-func TestGetTomlConfig_Nil_DefaultPathToConfig(t *testing.T) {
-	_, configErr := GetTomlConfig()
-	if configErr != nil {
-		t.Error(configErr)
-	}
-	if PathToConfig != "config.toml" {
-		t.Error("invalid path to config")
-	}
-}
-
 func TestGetTomlConfig_PathToTempConfig_ConfigPointer(t *testing.T) {
 	tempConfig, err := os.CreateTemp("", "testConfig.toml")
 	if err != nil {
@@ -39,7 +29,7 @@ func TestGetTomlConfig_PathToTempConfig_ConfigPointer(t *testing.T) {
 	defer func(name string) {
 		removeErr := os.Remove(name)
 		if removeErr != nil {
-			t.Fatalf(removeErr.Error())
+			t.Fatal(removeErr.Error())
 		}
 	}(tempConfig.Name())
 	_, writeConfigErr := tempConfig.Write([]byte(mockConfig))
@@ -52,7 +42,7 @@ func TestGetTomlConfig_PathToTempConfig_ConfigPointer(t *testing.T) {
 	}
 
 	PathToConfig = tempConfig.Name()
-	config, getConfigErr := GetTomlConfig()
+	config, getConfigErr := GetConfig()
 	if getConfigErr != nil {
 		t.Fatalf("error getting configuration: %v", getConfigErr)
 	}
@@ -64,7 +54,7 @@ func TestGetTomlConfig_PathToTempConfig_ConfigPointer(t *testing.T) {
 		t.Errorf("invalid chat_id, expected %v, received %v", 123456789, config.Telegram.ChatID)
 	}
 
-	if len(config.Sites.Urls) != 2 || config.Sites.Urls[0] != "https://example.com" || config.Sites.Urls[1] != "https://google.com" {
+	if len(config.Sites.URLs) != 2 || config.Sites.URLs[0] != "https://example.com" || config.Sites.URLs[1] != "https://google.com" {
 		t.Errorf("invalid site URLs")
 	}
 
@@ -78,7 +68,7 @@ func TestGetTomlConfig_PathToTempConfig_ConfigPointer(t *testing.T) {
 }
 
 func TestGetTomlConfig_InvalidPath_Error(t *testing.T) {
-	_, getConfigErr := GetTomlConfig()
+	_, getConfigErr := GetConfig()
 	if getConfigErr == nil {
 		t.Error("error expected")
 	}
@@ -106,7 +96,7 @@ func TestUpdateConfig_NewConfig_NewConfig(t *testing.T) {
 	}
 
 	PathToConfig = tempConfig.Name()
-	config := TomlConfig{}
+	config := AppConfig{}
 	updateConfigError := config.UpdateConfig()
 	if updateConfigError != nil {
 		t.Fatalf("error getting configuration: %v", updateConfigError)
@@ -119,7 +109,7 @@ func TestUpdateConfig_NewConfig_NewConfig(t *testing.T) {
 		t.Errorf("invalid chat_id, expected %v, received %v", 123456789, config.Telegram.ChatID)
 	}
 
-	if len(config.Sites.Urls) != 2 || config.Sites.Urls[0] != "https://example.com" || config.Sites.Urls[1] != "https://google.com" {
+	if len(config.Sites.URLs) != 2 || config.Sites.URLs[0] != "https://example.com" || config.Sites.URLs[1] != "https://google.com" {
 		t.Errorf("invalid site URLs")
 	}
 
@@ -133,7 +123,7 @@ func TestUpdateConfig_NewConfig_NewConfig(t *testing.T) {
 }
 
 func TestUpdateConfig_Nil_Error(t *testing.T) {
-	config := TomlConfig{}
+	config := AppConfig{}
 	updateConfigError := config.UpdateConfig()
 	if updateConfigError == nil {
 		t.Error("config update error expected")

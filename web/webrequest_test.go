@@ -42,7 +42,7 @@ func TestGetRequest_Success(t *testing.T) {
 	}
 }
 
-func TestGetRequest_BadURL_MsgInErrCh(t *testing.T) {
+func TestGetRequest_BadURL_MessageInErrCh(t *testing.T) {
 	log.SetOutput(io.Discard)
 	defer log.SetOutput(os.Stderr)
 
@@ -65,12 +65,30 @@ func TestGetRequest_BadURL_MsgInErrCh(t *testing.T) {
 	default:
 		t.Error("expected an error response in chErrors")
 	}
+}
+
+func TestGetRequest_BadURL_MessageInLogCh(t *testing.T) {
+	log.SetOutput(io.Discard)
+	defer log.SetOutput(os.Stderr)
+
+	badURL := "http://localhost:12345"
+
+	chLog := make(chan Response, 1)
+	chErrors := make(chan Response, 1)
+
+	client := &http.Client{
+		Timeout: 2 * time.Second,
+	}
+
+	GetRequest(badURL, client, chLog, chErrors)
 
 	select {
-	case <-chLog:
-		t.Error("did not expect anything in chLog")
+	case resp := <-chLog:
+		if resp.StatusCode != 0 {
+			t.Errorf("expected status code 0 for error, got %d", resp.StatusCode)
+		}
 	default:
-		// ок
+		t.Error("expected an error response in chErrors")
 	}
 }
 
