@@ -15,8 +15,7 @@ type Response struct {
 func GetRequest(url string, client *http.Client, chLog, chErrors chan<- Response) {
 	resp, err := client.Get(url)
 	if err != nil {
-		log.Printf("error requesting %s: %v\n", url, err)
-		sendErrorResponse(url, chErrors)
+		sendErrorResponse(url, chLog, chErrors)
 		return
 	}
 	defer func() {
@@ -37,11 +36,12 @@ func GetRequest(url string, client *http.Client, chLog, chErrors chan<- Response
 	chLog <- response
 }
 
-func sendErrorResponse(url string, chErrors chan<- Response) {
+func sendErrorResponse(url string, chLog, chErrors chan<- Response) {
 	response := Response{
 		StatusCode: 0,
 		DateTime:   time.Now().Format("2006-01-02 15:04:05"),
 		Url:        url,
 	}
+	chLog <- response
 	chErrors <- response
 }
