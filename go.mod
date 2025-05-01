@@ -1,4 +1,4 @@
-module TelegramBot
+module TelegramSiteMonitorBot
 
 go 1.24
 
