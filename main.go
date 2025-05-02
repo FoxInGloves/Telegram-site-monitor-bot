@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	ParseFlags()
+	parseFlags()
 
 	tomlConfig, getConfigError := config.GetConfig()
 	if getConfigError != nil {
@@ -29,14 +29,25 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	wg.Add(3)
+	wg.Add(1)
 	mutex := &sync.Mutex{}
 	go logger.InitLogger(logRespCh, mutex)
 
-	telegramBot, err := telegram.NewBot(tomlConfig.Telegram.BotToken, tomlConfig.Telegram.ChatID)
-	if err != nil {
-		panic(err)
+	var telegramBot telegram.Bot
+	var initBotErr, initBotWithProxyErr error
+
+	telegramBot, initBotErr = tryInitTelegramBot(tomlConfig)
+	if initBotErr != nil {
+		log.Println(initBotErr)
+
+		telegramBot, initBotWithProxyErr = tryInitTelegramBotWithProxy(tomlConfig)
+		if initBotWithProxyErr != nil {
+			log.Println(initBotWithProxyErr)
+			return
+		}
 	}
+
+	wg.Add(2)
 	go telegram.RunTelegramBot(telegramBot, errorsRespCh)
 
 	go func() {
@@ -52,7 +63,7 @@ func main() {
 	wg.Wait()
 }
 
-func ParseFlags() {
+func parseFlags() {
 	path := flag.String("path", "config.toml", "Path to config")
 	p := flag.String("p", "", "Path to config (short version)")
 
@@ -65,6 +76,36 @@ func ParseFlags() {
 	}
 }
 
+func tryInitTelegramBot(cfg *config.AppConfig) (telegram.Bot, error) {
+	telegramBot, err := telegram.NewBot(cfg.Telegram.BotToken, cfg.Telegram.ChatID)
+	if err != nil {
+		return nil, err
+	}
+
+	return telegramBot, nil
+}
+
+func tryInitTelegramBotWithProxy(cfg *config.AppConfig) (telegram.Bot, error) {
+	proxyAddress := cfg.Settings.Proxy
+
+	transport, err := web.GetWebTransport(proxyAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   30 * time.Second,
+	}
+
+	telegramBot, tgErr := telegram.NewBotWithProxy(cfg.Telegram.BotToken, cfg.Telegram.ChatID, client)
+	if tgErr != nil {
+		return nil, tgErr
+	}
+
+	return telegramBot, nil
+}
+
 func performRequests(tomlConfig *config.AppConfig, client *http.Client, logRespCh, errorsRespCh chan<- web.Response) {
 	updateConfigError := tomlConfig.UpdateConfig()
 	if updateConfigError != nil {
@@ -72,9 +113,9 @@ func performRequests(tomlConfig *config.AppConfig, client *http.Client, logRespC
 		return
 	}
 
-	for _, url := range tomlConfig.Sites.URLs {
+	for _, siteUrl := range tomlConfig.Sites.URLs {
 		go func(url string) {
 			web.GetRequest(url, client, logRespCh, errorsRespCh)
-		}(url)
+		}(siteUrl)
 	}
 }

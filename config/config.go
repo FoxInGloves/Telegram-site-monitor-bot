@@ -21,8 +21,9 @@ type sitesConfig struct {
 }
 
 type settingsConfig struct {
-	CheckInterval int `toml:"check_interval"`
-	Timeout       int `toml:"timeout"`
+	CheckInterval int    `toml:"check_interval"`
+	Timeout       int    `toml:"timeout"`
+	Proxy         string `toml:"proxy"`
 }
 
 var PathToConfig = "config.toml"
