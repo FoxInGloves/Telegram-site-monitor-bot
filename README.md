@@ -3,33 +3,33 @@
 **[English](README.md) | [Русский](README.ru.md)**
 
 **Telegram Site Monitor Bot** is a lightweight and convenient solution on **Go** that allows you to **monitor website
-availability** and **promptly receive notifications in Telegram** in case of failures.
+availability** and **promptly receive notifications in Telegram** in case of failures
 
 ---
 
 ## 🔧 What does this bot do?
 
-- 📡 **Checks website availability** via HTTP/HTTPS.
-- 📬 **Sends notifications to Telegram** if the site becomes unavailable or works again.
-- 📈 **Logs all checks**: both successful and unsuccessful to the file [year-month-date].log.
-- 📋 Provides a summary of the `/status` command in telegram with the current state of sites.
+- 📡 **Checks website availability** via HTTP/HTTPS
+- 📬 **Sends notifications to Telegram** if the site becomes unavailable or works again
+- 📈 **Logs all checks**: both successful and unsuccessful to the file [year-month-date].log
+- 📋 Provides a summary of the `/status` command in telegram with the current state of sites
 
 ---
 
 ## 📦 Key features
 
-- ✅ Support for multiple sites.
-- ⏱ Configurable intervals and request timeouts.
-- 🔁 Automatic startup via systemd.
+- ✅ Support for multiple sites
+- ⏱ Configurable intervals and request timeouts
+- 🔁 Automatic startup via systemd
 - ⚙️ Configuration file can be changed without recompilation
-- 🔐 Security: configuration is stored locally, without third-party services.
+- 🔐 Security: configuration is stored locally, without third-party services
 
 ---
 
 ## 📂 Installation and configuration
 
-1. **Install Go** (v1.24.2 or higher).
-2. **Configure the server** (Linux, Ubuntu/Debian recommended).
+1. **Install Go** (v1.24.2 or higher)
+2. **Configure the server** (Linux, Ubuntu/Debian recommended)
 3. **Create a `config.toml` configuration file:**
 
 ```toml
@@ -46,8 +46,11 @@ urls = [
 [settings]
 check_interval = 300 # Check interval (in seconds)
 timeout = 10 # Request timeout (in seconds)
+proxy = "https://120.0.0.1:1010"
 ```
-
+The proxy is used after the first unsuccessful attempt to connect to the telegram bot. 
+The proxy supports the http/https and socks5/socks5h protocols. 
+If the protocol is not specified in the config, then http will be used by default
 4. **Build and run the bot:**
 
 - When building, the config must be located in the root directory of the project
