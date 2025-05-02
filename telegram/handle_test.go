@@ -4,12 +4,11 @@ import (
 	"TelegramSiteMonitorBot/config"
 	"TelegramSiteMonitorBot/web"
 	"bytes"
-	"fmt"
+	"errors"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -44,13 +43,7 @@ func (m *MockBot) Updates() <-chan Update {
 // Helper function for tests
 func newTestConfig(URLs []string) *config.AppConfig {
 	cfg := config.AppConfig{}
-	val := reflect.ValueOf(&cfg.Sites).Elem()
-	urlsField := val.FieldByName("URLs")
-	if urlsField.CanSet() {
-		urlsField.Set(reflect.ValueOf(URLs))
-	} else {
-		panic("URLs field is not editable")
-	}
+	cfg.Sites.URLs = URLs
 	return &cfg
 }
 
@@ -83,7 +76,7 @@ func TestHandleWebResponses_Error(t *testing.T) {
 	defer close(responsesCh)
 	var wg sync.WaitGroup
 	bot := &MockBot{
-		ErrToThrow: fmt.Errorf("error"),
+		ErrToThrow: errors.New("error"),
 		Done: func() {
 			wg.Done()
 		},
@@ -185,7 +178,7 @@ func TestHandleStatusCommand_MessageInCh(t *testing.T) {
 
 func TestHandleStatusCommand_Error(t *testing.T) {
 	bot := &MockBot{
-		ErrToThrow: fmt.Errorf("error"),
+		ErrToThrow: errors.New("error"),
 		Done: func() {
 			return
 		},
@@ -226,7 +219,7 @@ func TestHandleUnknownCommand_Error(t *testing.T) {
 	log.SetOutput(&logBuf)
 	defer log.SetOutput(os.Stderr)
 	bot := &MockBot{}
-	bot.ErrToThrow = fmt.Errorf("error")
+	bot.ErrToThrow = errors.New("error")
 
 	handleUnknownCommand(bot)
 
