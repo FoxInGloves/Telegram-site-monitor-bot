@@ -1,10 +1,10 @@
 package main
 
 import (
-	"TelegramBot/config"
-	"TelegramBot/logger"
-	"TelegramBot/tgbot"
-	"TelegramBot/web"
+	"TelegramSiteMonitorBot/config"
+	"TelegramSiteMonitorBot/logger"
+	"TelegramSiteMonitorBot/telegram"
+	"TelegramSiteMonitorBot/web"
 	"flag"
 	"fmt"
 	"log"
@@ -14,26 +14,41 @@ import (
 )
 
 func main() {
-	ParseFlags()
+	parseFlags()
 
-	var wg sync.WaitGroup
-
-	tomlConfig, getConfigError := config.GetTomlConfig()
+	tomlConfig, getConfigError := config.GetConfig()
 	if getConfigError != nil {
 		fmt.Println(getConfigError)
 		return
 	}
 
-	logRespCh := make(chan web.Response, len(tomlConfig.Sites.Urls))
-	errorsRespCh := make(chan web.Response, len(tomlConfig.Sites.Urls))
+	logRespCh := make(chan web.Response, len(tomlConfig.Sites.URLs))
+	errorsRespCh := make(chan web.Response, len(tomlConfig.Sites.URLs))
 	defer close(logRespCh)
 	defer close(errorsRespCh)
 
-	wg.Add(3)
-	go tgbot.Init(&tomlConfig.Telegram.BotToken, &tomlConfig.Telegram.ChatID, errorsRespCh)
+	var wg sync.WaitGroup
 
+	wg.Add(1)
 	mutex := &sync.Mutex{}
 	go logger.InitLogger(logRespCh, mutex)
+
+	var telegramBot telegram.Bot
+	var initBotErr, initBotWithProxyErr error
+
+	telegramBot, initBotErr = tryInitTelegramBot(tomlConfig)
+	if initBotErr != nil {
+		log.Println(initBotErr)
+
+		telegramBot, initBotWithProxyErr = tryInitTelegramBotWithProxy(tomlConfig)
+		if initBotWithProxyErr != nil {
+			log.Println(initBotWithProxyErr)
+			return
+		}
+	}
+
+	wg.Add(2)
+	go telegram.RunTelegramBot(telegramBot, errorsRespCh)
 
 	go func() {
 		client := &http.Client{
@@ -48,9 +63,9 @@ func main() {
 	wg.Wait()
 }
 
-func ParseFlags() {
-	path := flag.String("path", "config.toml", "Путь к конфигу")
-	p := flag.String("p", "", "Путь к конфигу (короткая версия)")
+func parseFlags() {
+	path := flag.String("path", "config.toml", "Path to config")
+	p := flag.String("p", "", "Path to config (short version)")
 
 	flag.Parse()
 
@@ -61,16 +76,46 @@ func ParseFlags() {
 	}
 }
 
-func performRequests(tomlConfig *config.TomlConfig, client *http.Client, logRespCh, errorsRespCh chan<- web.Response) {
+func tryInitTelegramBot(cfg *config.AppConfig) (telegram.Bot, error) {
+	telegramBot, err := telegram.NewBot(cfg.Telegram.BotToken, cfg.Telegram.ChatID)
+	if err != nil {
+		return nil, err
+	}
+
+	return telegramBot, nil
+}
+
+func tryInitTelegramBotWithProxy(cfg *config.AppConfig) (telegram.Bot, error) {
+	proxyAddress := cfg.Settings.Proxy
+
+	transport, err := web.GetWebTransport(proxyAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   30 * time.Second,
+	}
+
+	telegramBot, tgErr := telegram.NewBotWithProxy(cfg.Telegram.BotToken, cfg.Telegram.ChatID, client)
+	if tgErr != nil {
+		return nil, tgErr
+	}
+
+	return telegramBot, nil
+}
+
+func performRequests(tomlConfig *config.AppConfig, client *http.Client, logRespCh, errorsRespCh chan<- web.Response) {
 	updateConfigError := tomlConfig.UpdateConfig()
 	if updateConfigError != nil {
 		log.Println(updateConfigError)
 		return
 	}
 
-	for _, url := range tomlConfig.Sites.Urls {
+	for _, siteUrl := range tomlConfig.Sites.URLs {
 		go func(url string) {
 			web.GetRequest(url, client, logRespCh, errorsRespCh)
-		}(url)
+		}(siteUrl)
 	}
 }

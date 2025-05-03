@@ -5,7 +5,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-type TomlConfig struct {
+type AppConfig struct {
 	Telegram telegramConfig
 	Sites    sitesConfig
 	Settings settingsConfig
@@ -17,22 +17,19 @@ type telegramConfig struct {
 }
 
 type sitesConfig struct {
-	Urls []string `toml:"urls"`
+	URLs []string `toml:"urls"`
 }
 
 type settingsConfig struct {
-	CheckInterval int `toml:"check_interval"`
-	Timeout       int `toml:"timeout"`
+	CheckInterval int    `toml:"check_interval"`
+	Timeout       int    `toml:"timeout"`
+	Proxy         string `toml:"proxy"`
 }
 
-var PathToConfig string
+var PathToConfig = "config.toml"
 
-func GetTomlConfig() (*TomlConfig, error) {
-	if PathToConfig == "" {
-		PathToConfig = "config.toml"
-	}
-
-	var tomlConfig TomlConfig
+func GetConfig() (*AppConfig, error) {
+	var tomlConfig AppConfig
 	if _, err := toml.DecodeFile(PathToConfig, &tomlConfig); err != nil {
 		configError := fmt.Errorf("Config is corrupted! Check the config and restart the program.\nError: %w", err)
 		return nil, configError
@@ -40,7 +37,7 @@ func GetTomlConfig() (*TomlConfig, error) {
 	return &tomlConfig, nil
 }
 
-func (tomlConfig *TomlConfig) UpdateConfig() error {
+func (tomlConfig *AppConfig) UpdateConfig() error {
 	if _, err := toml.DecodeFile(PathToConfig, &tomlConfig); err != nil {
 		return fmt.Errorf("Config is corrupted! Check the config and restart the program.\nError: %w", err)
 	}

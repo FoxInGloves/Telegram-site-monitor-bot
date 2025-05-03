@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"TelegramBot/web"
+	"TelegramSiteMonitorBot/web"
 	"log"
 	"os"
 	"sync"

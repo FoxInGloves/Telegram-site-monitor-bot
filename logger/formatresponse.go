@@ -1,14 +1,14 @@
 package logger
 
 import (
-	"TelegramBot/web"
+	"TelegramSiteMonitorBot/web"
 	"fmt"
 	"strconv"
 )
 
 func FormatResponse(response web.Response) string {
 	var status string
-	if response.StatusCode < 400 {
+	if response.StatusCode < 400 && response.StatusCode != 0 {
 		status = "доступен"
 	} else {
 		status = "недоступен"
