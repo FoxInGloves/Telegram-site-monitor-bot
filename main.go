@@ -39,10 +39,12 @@ func main() {
 	telegramBot, initBotErr = tryInitTelegramBot(tomlConfig)
 	if initBotErr != nil {
 		log.Println(initBotErr)
+		fmt.Println("Failed to connect to the bot")
 
 		telegramBot, initBotWithProxyErr = tryInitTelegramBotWithProxy(tomlConfig)
 		if initBotWithProxyErr != nil {
 			log.Println(initBotWithProxyErr)
+			fmt.Println("Failed to connect to bot with proxy")
 			return
 		}
 	}
